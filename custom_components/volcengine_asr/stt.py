@@ -517,7 +517,7 @@ class VolcengineASRProvider(SpeechToTextEntity):
                         continue
                     
                     resp_header_data = response_data[:4]
-                    raw_payload_data = response_data[8:]
+                    raw_payload_data = response_data[12:]
                     
                     preprocess_start = time.time()
                     processed_payload_data = self._preprocess_payload(raw_payload_data)
@@ -640,9 +640,10 @@ class VolcengineASRProvider(SpeechToTextEntity):
                     break
                 elif ws_msg.type == aiohttp.WSMsgType.CLOSED:
                     _LOGGER.info("aiohttp WS Closed by server.")
-                    # 服务器关闭连接可能意味着识别结束，直接标记为final
+                    # 确保处理已接收的文本
+                    if all_text_segments and not final_results:
+                        server_marked_final = True
                     self._perf_log(LOG_TAG_WEBSOCKET, "服务器关闭WebSocket连接，标记为结束")
-                    server_marked_final = True
                     break
                     
             except asyncio.TimeoutError:
